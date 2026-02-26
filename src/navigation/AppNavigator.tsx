@@ -8,6 +8,7 @@ import TrustedPeopleScreen from '../screens/TrustedPeopleScreen';
 import AddPersonScreen from '../screens/AddPersonScreen';
 import VaultScreen from '../screens/VaultScreen';
 import IntroAnimationScreen from '../screens/IntroAnimationScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function AppNavigator() {
       <Stack.Screen name="TrustedPeople" component={TrustedPeopleScreen} />
       <Stack.Screen name="AddPerson" component={AddPersonScreen} />
       <Stack.Screen name="Vault" component={VaultScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 }

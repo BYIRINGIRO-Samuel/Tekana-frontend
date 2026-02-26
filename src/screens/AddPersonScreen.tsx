@@ -8,7 +8,20 @@ export default function AddPersonScreen() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [relationship, setRelationship] = useState('');
-  const handleSave = () => { navigation.goBack(); };
+  const handleSave = () => {
+    if (!name || !phone || !relationship) return;
+
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const newContact = {
+      name,
+      phone,
+      relationship,
+      initials,
+    };
+
+    // Navigate back with params
+    navigation.navigate('TrustedPeople', { newContact });
+  };
   return (
     <SafeAreaView className="flex-1 bg-brand-dark px-6">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -42,8 +55,8 @@ export default function AddPersonScreen() {
           </View>
         </ScrollView>
         <View className="pb-8">
-          <TouchableOpacity onPress={handleSave} disabled={!name || !phone} activeOpacity={0.7} className={`h-16 rounded-2xl items-center justify-center ${(!name || !phone) ? 'bg-gray-800 opacity-50' : 'bg-brand-green shadow-xl shadow-brand-green/20'}`}>
-            <Text className={`text-xl font-bold ${(!name || !phone) ? 'text-gray-500' : 'text-brand-dark'}`}>Save Person</Text>
+          <TouchableOpacity onPress={handleSave} disabled={!name || !phone || !relationship} activeOpacity={0.7} className={`h-16 rounded-2xl items-center justify-center ${(!name || !phone || !relationship) ? 'bg-gray-800 opacity-50' : 'bg-brand-green shadow-xl shadow-brand-green/20'}`}>
+            <Text className={`text-xl font-bold ${(!name || !phone || !relationship) ? 'text-gray-500' : 'text-brand-dark'}`}>Save Person</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

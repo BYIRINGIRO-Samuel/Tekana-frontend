@@ -25,6 +25,7 @@ export default function SignupScreen() {
         phone,
         email: email || undefined,
         password,
+        role: 'CITIZEN',
       });
       navigation.navigate('Dashboard');
     } catch (error: any) {

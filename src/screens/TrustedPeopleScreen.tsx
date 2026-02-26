@@ -1,17 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TRUSTED_CONTACTS = [
+interface TrustedContact {
+  id: string;
+  name: string;
+  phone: string;
+  relationship: string;
+  initials: string;
+}
+
+const DEFAULT_CONTACTS: TrustedContact[] = [
   { id: '1', name: 'Darcy Wales', phone: '+250 724 524 524', initials: 'DW', relationship: 'Primary' },
   { id: '2', name: 'John Doe', phone: '+250 079 544 545', initials: 'JD', relationship: 'Secondary' },
   { id: '3', name: 'Jane Doe', phone: '+250 738 899 988', initials: 'JD', relationship: 'Family' },
 ];
 
-const ContactCard = ({ contact }: { contact: typeof TRUSTED_CONTACTS[0] }) => (
+const ContactCard = ({ contact, onDelete }: { contact: TrustedContact, onDelete: (id: string) => void }) => (
   <TouchableOpacity 
     activeOpacity={0.7}
+    onLongPress={() => onDelete(contact.id)}
     className="bg-brand-muted mb-4 p-5 rounded-[28px] border border-gray-800 flex-row items-center"
   >
     <View className="w-14 h-14 rounded-2xl bg-brand-green/10 border border-brand-green/30 items-center justify-center mr-4">
@@ -29,6 +39,48 @@ const ContactCard = ({ contact }: { contact: typeof TRUSTED_CONTACTS[0] }) => (
 
 export default function TrustedPeopleScreen() {
   const navigation = useNavigation<any>();
+  const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>(DEFAULT_CONTACTS);
+
+  useEffect(() => {
+    loadContacts();
+  }, []);
+
+  const loadContacts = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('trusted_contacts');
+      if (stored) {
+        setTrustedContacts(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Failed to load contacts:', error);
+    }
+  };
+
+  const saveContacts = async (contacts: TrustedContact[]) => {
+    try {
+      await AsyncStorage.setItem('trusted_contacts', JSON.stringify(contacts));
+    } catch (error) {
+      console.error('Failed to save contacts:', error);
+    }
+  };
+
+  // Function to add contact from AddPersonScreen
+  const addContact = (contact: Omit<TrustedContact, 'id'>) => {
+    const newContact: TrustedContact = {
+      ...contact,
+      id: Date.now().toString(),
+    };
+    const updated = [...trustedContacts, newContact];
+    setTrustedContacts(updated);
+    saveContacts(updated);
+  };
+
+  const deleteContact = (id: string) => {
+    const updated = trustedContacts.filter(c => c.id !== id);
+    setTrustedContacts(updated);
+    saveContacts(updated);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-brand-dark px-6">
       <View className="flex-row justify-between items-center py-6">
@@ -52,9 +104,9 @@ export default function TrustedPeopleScreen() {
         </Text>
       </View>
       <FlatList 
-        data={TRUSTED_CONTACTS}
+        data={trustedContacts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ContactCard contact={item} />}
+        renderItem={({ item }) => <ContactCard contact={item} onDelete={deleteContact} />}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       />

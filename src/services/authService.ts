@@ -47,8 +47,19 @@ export const authService = {
     },
 
     async logout() {
-        await AsyncStorage.removeItem('user_token');
-        await AsyncStorage.removeItem('user_data');
+        try {
+            // Get user ID for backend logout
+            const user = await this.getCurrentUser();
+            if (user) {
+                await api.post('/auth/logout', { userId: user.id });
+            }
+        } catch (error) {
+            console.error('Backend logout error:', error);
+        } finally {
+            // Always clear local storage
+            await AsyncStorage.removeItem('user_token');
+            await AsyncStorage.removeItem('user_data');
+        }
     },
 
     async getCurrentUser() {
@@ -57,7 +68,12 @@ export const authService = {
     },
 
     async isAuthenticated() {
-        const token = await AsyncStorage.getItem('user_token');
-        return !!token;
+        try {
+            const token = await AsyncStorage.getItem('user_token');
+            return !!token;
+        } catch (error) {
+            console.error('AsyncStorage error:', error);
+            return false;
+        }
     }
 };

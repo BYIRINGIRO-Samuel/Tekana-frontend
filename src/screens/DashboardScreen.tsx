@@ -255,8 +255,11 @@ export default function DashboardScreen() {
                 <TouchableOpacity onPress={() => navigation.navigate('Vault')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
                   <Text style={{ fontSize: 20 }}>🛡️</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('TrustedPeople')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center">
+                <TouchableOpacity onPress={() => navigation.navigate('TrustedPeople')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
                   <Text style={{ fontSize: 20 }}>👥</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Profile')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center">
+                  <Text style={{ fontSize: 20 }}>👤</Text>
                 </TouchableOpacity>
               </View>
             </View>
