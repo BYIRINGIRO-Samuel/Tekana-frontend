@@ -7,18 +7,20 @@ import DashboardScreen from '../screens/DashboardScreen';
 import TrustedPeopleScreen from '../screens/TrustedPeopleScreen';
 import AddPersonScreen from '../screens/AddPersonScreen';
 import VaultScreen from '../screens/VaultScreen';
+import IntroAnimationScreen from '../screens/IntroAnimationScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator 
-      initialRouteName="Welcome"
+      initialRouteName="Intro"
       screenOptions={{
         headerShown: false,
-        animation: 'fade_from_bottom',
+        animation: 'fade',
       }}
     >
+      <Stack.Screen name="Intro" component={IntroAnimationScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
