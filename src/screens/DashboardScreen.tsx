@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Camera, CameraView } from 'expo-camera';
 import { Audio } from 'expo-av';
 import Animated, { 
@@ -68,6 +69,7 @@ const AudioBar = ({ index }: { index: number }) => {
 };
 
 export default function DashboardScreen() {
+  const navigation = useNavigation();
   const [isRecording, setIsRecording] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const pulse = useSharedValue(1);
@@ -122,13 +124,20 @@ export default function DashboardScreen() {
           <View className="absolute top-[280px] left-[-10%] w-[120%] h-[400px] bg-[#111111] rotate-[10deg]" />
           
           <SafeAreaView className="flex-1 px-6">
-            <View className="pt-4">
-              <Image 
-                source={require('../../assets/logo.png')} 
-                className="w-12 h-12"
-                resizeMode="contain"
-              />
-            </View>
+        {/* Top Header */}
+        <View className="pt-4 flex-row justify-between items-center">
+          <Image 
+            source={require('../../assets/logo.png')} 
+            className="w-12 h-12"
+            resizeMode="contain"
+          />
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('TrustedPeople' as never)}
+            className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center"
+          >
+            <Text className="text-brand-green text-xl">👥</Text>
+          </TouchableOpacity>
+        </View>
 
             <View className="flex-1 items-center justify-end pb-24">
               <Animated.View 
