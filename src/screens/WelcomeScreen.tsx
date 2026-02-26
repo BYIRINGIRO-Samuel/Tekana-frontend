@@ -11,27 +11,31 @@ import Animated, {
   withSequence, 
   withTiming,
   interpolate,
-  withDelay
 } from 'react-native-reanimated';
+import { authService } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const navigation = useNavigation<any>();
   
-  // HUD Glitch/System UI Animations
   const scanLinePos = useSharedValue(-100);
   const bgOpacity = useSharedValue(0.1);
 
   useEffect(() => {
-    // Infinite Scanner Line Animation
+    const checkUser = async () => {
+      if (await authService.isAuthenticated()) {
+        navigation.replace('Dashboard');
+      }
+    };
+    checkUser();
+
     scanLinePos.value = withRepeat(
       withTiming(500, { duration: 3000 }),
       -1,
       false
     );
     
-    // Subtle Glitch Opacity
     bgOpacity.value = withRepeat(
       withSequence(
         withTiming(0.15, { duration: 100 }),
@@ -53,9 +57,7 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-brand-dark">
-      {/* GAME-STYLE HUD OVERLAY */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {/* Animated Scan Line */}
         <Animated.View 
           style={[scanLineStyle, { 
             position: 'absolute', 
@@ -71,7 +73,6 @@ export default function WelcomeScreen() {
           }]} 
         />
         
-        {/* System ID/HUD Elements */}
         <View className="absolute top-16 left-6 opacity-30">
           <Text className="text-brand-green font-mono text-[10px]">AUTH_MODE: BIOMETRIC_READY</Text>
           <Text className="text-brand-green font-mono text-[10px]">ENCRYPT_LEVEL: MIL_SPEC_AES256</Text>
@@ -81,18 +82,12 @@ export default function WelcomeScreen() {
           <Text className="text-brand-green font-mono text-[10px]">LOC: 0.0.0.0.LOCAL</Text>
         </View>
 
-        {/* Global Grid/Scanning Background */}
         <Animated.View style={[systemStatusStyle, styles.gridLayout]} />
       </View>
 
       <View className="flex-1 items-center justify-between py-12 px-8">
-        {/* Central Logo & Pulse Area */}
         <View className="flex-1 items-center justify-center">
-          <Animated.View 
-            entering={FadeIn.duration(1500)}
-            className="w-64 h-64 items-center justify-center"
-          >
-            {/* Hexagonal Frame Decoration */}
+          <View className="w-64 h-64 items-center justify-center">
             <View className="absolute w-72 h-72 border border-brand-green/20 rounded-full rotate-45" />
             <View className="absolute w-60 h-60 border border-brand-green/40 rounded-full -rotate-12" />
             
@@ -101,32 +96,28 @@ export default function WelcomeScreen() {
               style={{ width: 180, height: 180 }}
               resizeMode="contain"
             />
-          </Animated.View>
+          </View>
 
-          <Animated.Text 
-            entering={FadeInDown.delay(300).duration(1000)}
+          <Text 
             className="text-white text-5xl font-black tracking-widest mt-8"
           >
             TEKANA
-          </Animated.Text>
+          </Text>
           
-          <Animated.View 
-            entering={FadeInDown.delay(500).duration(1000)}
+          <View 
             className="flex-row items-center mt-2 bg-brand-green/10 px-4 py-1 rounded-sm border-l-2 border-brand-green"
           >
-            <View className="w-2 h-2 rounded-full bg-brand-green mr-2 animate-pulse" />
+            <View className="w-2 h-2 rounded-full bg-brand-green mr-2" />
             <Text className="text-brand-green font-mono text-xs tracking-widest">SYSTEM_LIVE: ACTIVE_SHIELD</Text>
-          </Animated.View>
+          </View>
         </View>
 
-        {/* Action Buttons with Game UI feel */}
         <View className="w-full">
           <Animated.View entering={FadeInDown.delay(700).duration(800)}>
             <TouchableOpacity 
               onPress={() => navigation.navigate('Signup')}
               activeOpacity={0.8}
-              className="bg-brand-green h-16 rounded-sm items-center justify-center flex-row overflow-hidden"
-              style={styles.gameButton}
+              className="bg-brand-green h-16 rounded-sm items-center justify-center flex-row overflow-hidden shadow-lg shadow-brand-green/20"
             >
               <View className="absolute left-0 w-2 h-full bg-brand-dark/20" />
               <Text className="text-brand-dark text-xl font-black uppercase tracking-tighter">Initialize Protection</Text>
@@ -154,9 +145,8 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderWidth: 1,
     borderColor: '#A2D149',
+    opacity: 0.05,
     backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(rgba(162, 209, 73, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(162, 209, 73, 0.1) 1px, transparent 1px)',
-    backgroundSize: '30px 30px',
   },
   gameButton: {
     shadowColor: '#A2D149',

@@ -2,33 +2,53 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { useNavigation } from '@react-navigation/native';
-import Animated, { FadeOut } from 'react-native-reanimated';
+import Animated, { FadeOut, FadeIn } from 'react-native-reanimated';
+import { authService } from '../services/authService';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function IntroAnimationScreen() {
   const navigation = useNavigation<any>();
 
   useEffect(() => {
-    // Navigate to Welcome screen after 4 seconds (approx length of a typical high-quality intro)
-    const timer = setTimeout(() => {
-      navigation.replace('Welcome');
-    }, 4500);
+    const checkAuthAndNavigate = async () => {
+      try {
+        const authenticated = await authService.isAuthenticated();
+        console.log('Authenticated:', authenticated);
+        
+        setTimeout(() => {
+          console.log('Navigating...');
+          if (authenticated) {
+            navigation.navigate('Dashboard');
+          } else {
+            navigation.navigate('Welcome');
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        // Fallback to Welcome if error
+        setTimeout(() => {
+          navigation.navigate('Welcome');
+        }, 1000);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    checkAuthAndNavigate();
   }, []);
 
   return (
     <Animated.View exiting={FadeOut.duration(800)} style={styles.container}>
       <LottieView
-        source={{ uri: 'https://assets9.lottiefiles.com/packages/lf20_ndm9v25o.json' }} // Security Shield scan animation
+        source={{ uri: 'https://lottie.host/7970d4f3-7848-4395-8854-fc946e356885/mB1XbL3Oat.json' }}
         autoPlay
         loop={false}
         style={styles.animation}
-        onAnimationFinish={() => {
-          // Alternative trigger: navigation.replace('Welcome');
-        }}
       />
+      <View style={{ position: 'absolute', bottom: 100 }}>
+        <Animated.Text entering={FadeIn.delay(1000)} style={styles.fallbackText}>
+          Tekana
+        </Animated.Text>
+      </View>
     </Animated.View>
   );
 }
@@ -44,4 +64,11 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     height: width * 0.9,
   },
+  fallbackText: {
+    color: '#A2D149',
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: 10,
+    textTransform: 'uppercase',
+  }
 });
