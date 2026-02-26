@@ -40,7 +40,10 @@ export default function TrustedPeopleScreen() {
           <Text className="text-white text-xl">←</Text>
         </TouchableOpacity>
         <Text className="text-white text-2xl font-black">Trusted Circle</Text>
-        <TouchableOpacity className="w-12 h-12 bg-brand-green rounded-2xl items-center justify-center">
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('AddPerson' as never)}
+          className="w-12 h-12 bg-brand-green rounded-2xl items-center justify-center"
+        >
           <Text className="text-brand-dark text-2xl font-black">+</Text>
         </TouchableOpacity>
       </View>
@@ -60,9 +63,10 @@ export default function TrustedPeopleScreen() {
       />
       
       <TouchableOpacity 
+        onPress={() => navigation.navigate('AddPerson' as never)}
         className="bg-brand-muted p-6 rounded-[32px] border border-dashed border-gray-700 items-center justify-center mb-6"
       >
-        <Text className="text-gray-400 font-bold">Add from Contacts</Text>
+        <Text className="text-gray-400 font-bold">Add New Trusted Person</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
