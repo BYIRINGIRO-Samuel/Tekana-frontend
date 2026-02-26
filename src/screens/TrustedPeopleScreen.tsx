@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,8 +28,7 @@ const ContactCard = ({ contact }: { contact: typeof TRUSTED_CONTACTS[0] }) => (
 );
 
 export default function TrustedPeopleScreen() {
-  const navigation = useNavigation();
-
+  const navigation = useNavigation<any>();
   return (
     <SafeAreaView className="flex-1 bg-brand-dark px-6">
       <View className="flex-row justify-between items-center py-6">
@@ -41,19 +40,17 @@ export default function TrustedPeopleScreen() {
         </TouchableOpacity>
         <Text className="text-white text-2xl font-black">Trusted Circle</Text>
         <TouchableOpacity 
-          onPress={() => navigation.navigate('AddPerson' as never)}
+          onPress={() => navigation.navigate('AddPerson')}
           className="w-12 h-12 bg-brand-green rounded-2xl items-center justify-center"
         >
           <Text className="text-brand-dark text-2xl font-black">+</Text>
         </TouchableOpacity>
       </View>
-
       <View className="mb-8">
         <Text className="text-gray-500 text-lg leading-relaxed">
           These people will be notified immediately when you trigger an <Text className="text-brand-green font-bold">SOS</Text> alert.
         </Text>
       </View>
-
       <FlatList 
         data={TRUSTED_CONTACTS}
         keyExtractor={(item) => item.id}
@@ -61,9 +58,8 @@ export default function TrustedPeopleScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
-      
       <TouchableOpacity 
-        onPress={() => navigation.navigate('AddPerson' as never)}
+        onPress={() => navigation.navigate('AddPerson')}
         className="bg-brand-muted p-6 rounded-[32px] border border-dashed border-gray-700 items-center justify-center mb-6"
       >
         <Text className="text-gray-400 font-bold">Add New Trusted Person</Text>
