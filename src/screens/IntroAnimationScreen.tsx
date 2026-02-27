@@ -1,15 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeOut, FadeIn } from 'react-native-reanimated';
 import { authService } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
-export default function IntroAnimationScreen() {
-  const navigation = useNavigation<any>();
-
+export default function IntroAnimationScreen({ navigate }: { navigate: (screen: string) => void }) {
   useEffect(() => {
     const checkAuthAndNavigate = async () => {
       try {
@@ -19,16 +16,16 @@ export default function IntroAnimationScreen() {
         setTimeout(() => {
           console.log('Navigating...');
           if (authenticated) {
-            navigation.navigate('Dashboard');
+            navigate('Dashboard');
           } else {
-            navigation.navigate('Welcome');
+            navigate('Welcome');
           }
         }, 1000);
       } catch (error) {
         console.error('Error checking auth:', error);
         // Fallback to Welcome if error
         setTimeout(() => {
-          navigation.navigate('Welcome');
+          navigate('Welcome');
         }, 1000);
       }
     };

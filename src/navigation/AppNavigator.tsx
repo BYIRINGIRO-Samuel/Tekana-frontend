@@ -10,7 +10,19 @@ import VaultScreen from '../screens/VaultScreen';
 import IntroAnimationScreen from '../screens/IntroAnimationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
-const Stack = createNativeStackNavigator();
+export type RootStackParamList = {
+  Intro: undefined;
+  Welcome: undefined;
+  Login: undefined;
+  Signup: undefined;
+  Dashboard: undefined;
+  TrustedPeople: undefined;
+  AddPerson: undefined;
+  Vault: undefined;
+  Profile: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (

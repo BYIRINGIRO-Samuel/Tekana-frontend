@@ -3,6 +3,7 @@
     "name": "TEKANA",
     "slug": "tekana",
     "version": "1.0.0",
+    "main": "index.js",
     "web": {
       "favicon": "./assets/favicon.png"
     },

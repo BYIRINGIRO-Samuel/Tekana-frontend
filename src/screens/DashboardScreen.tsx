@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { Camera, CameraView, CameraMountError } from 'expo-camera';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -85,9 +84,7 @@ const AudioBar = ({ index, active }: { index: number, active: boolean }) => {
   return <Animated.View style={[animatedStyle, { width: 4, backgroundColor: '#A2D149', marginHorizontal: 2, borderRadius: 2 }]} />;
 };
 
-export default function DashboardScreen() {
-  const navigation = useNavigation<any>();
-  const isFocused = useIsFocused();
+export default function DashboardScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack: () => void }) {
   const [isRecording, setIsRecording] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isPreparing, setIsPreparing] = useState(false);
@@ -211,13 +208,11 @@ export default function DashboardScreen() {
     }
   }, [isCameraReady, runRecordingSequence]);
 
-  if (!isFocused) return <View className="flex-1 bg-brand-dark" />;
-
   if (hasPermission === false) {
     return (
       <SafeAreaView className="flex-1 bg-brand-dark items-center justify-center px-10">
         <Text className="text-white text-center text-lg mb-4 font-medium italic">Hardware Access Required</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-brand-green px-10 py-4 rounded-2xl">
+        <TouchableOpacity onPress={goBack} className="bg-brand-green px-10 py-4 rounded-2xl">
           <Text className="text-brand-dark font-black">Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -252,13 +247,13 @@ export default function DashboardScreen() {
             <View className="pt-4 flex-row justify-between items-center">
               <Image source={require('../../assets/logo.png')} style={{ width: 48, height: 48 }} resizeMode="contain" />
               <View className="flex-row">
-                <TouchableOpacity onPress={() => navigation.navigate('Vault')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
+                <TouchableOpacity onPress={() => navigate('Vault')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
                   <Text style={{ fontSize: 20 }}>🛡️</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('TrustedPeople')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
+                <TouchableOpacity onPress={() => navigate('TrustedPeople')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center mr-3">
                   <Text style={{ fontSize: 20 }}>👥</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Profile')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center">
+                <TouchableOpacity onPress={() => navigate('Profile')} className="w-12 h-12 bg-brand-muted rounded-2xl border border-gray-800 items-center justify-center">
                   <Text style={{ fontSize: 20 }}>👤</Text>
                 </TouchableOpacity>
               </View>
