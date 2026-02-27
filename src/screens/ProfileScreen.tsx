@@ -152,11 +152,6 @@ export default function ProfileScreen() {
               )}
 
               <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>🆔 User ID</Text>
-                <Text style={styles.infoValue}>{profile.id.slice(0, 8)}...</Text>
-              </View>
-
-              <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>📅 Member Since</Text>
                 <Text style={styles.infoValue}>{formatDate(profile.createdAt)}</Text>
               </View>

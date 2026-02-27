@@ -23,6 +23,8 @@ export interface AuthResponse {
         email?: string;
         role: string;
         isVerified: boolean;
+        lastLoginAt?: string;
+        createdAt: string;
     };
     token: string;
     expiresIn: string;
