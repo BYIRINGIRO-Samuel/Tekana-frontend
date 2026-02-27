@@ -11,11 +11,7 @@ interface TrustedContact {
   initials: string;
 }
 
-const DEFAULT_CONTACTS: TrustedContact[] = [
-  { id: '1', name: 'Darcy Wales', phone: '+250 724 524 524', initials: 'DW', relationship: 'Primary' },
-  { id: '2', name: 'John Doe', phone: '+250 079 544 545', initials: 'JD', relationship: 'Secondary' },
-  { id: '3', name: 'Jane Doe', phone: '+250 738 899 988', initials: 'JD', relationship: 'Family' },
-];
+const DEFAULT_CONTACTS: TrustedContact[] = [];
 
 const ContactCard = ({ contact, onDelete }: { contact: TrustedContact, onDelete: (id: string) => void }) => (
   <TouchableOpacity 
@@ -98,7 +94,7 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
     };
 
     try {
-      const contacts = [...trustedContacts, newContact];
+      const contacts = [newContact, ...trustedContacts];
       setTrustedContacts(contacts);
       await saveContacts(contacts);
       setIsAdding(false);
@@ -113,7 +109,6 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
   };
 
   if (isAdding) {
-    console.log('Rendering add form, relationship:', relationship);
     return (
       <SafeAreaView className="flex-1 bg-brand-dark px-6">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -140,7 +135,7 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
                   {['Family', 'Friend', 'Work', 'Other'].map((type) => {
                     const isSelected = relationship === type;
                     return (
-                      <TouchableOpacity key={type} onPress={() => { console.log('Selected:', type); setRelationship(type); }} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 9999, borderWidth: 1, borderColor: isSelected ? '#A2D149' : '#666', backgroundColor: isSelected ? '#A2D149' : '#333' }}>
+                      <TouchableOpacity key={type} onPress={() => setRelationship(type)} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: isSelected ? '#A2D149' : '#666', backgroundColor: isSelected ? '#A2D149' : '#333' }}>
                         <Text style={{ fontWeight: 'bold', color: isSelected ? '#0D0D0D' : '#999' }}>{type}</Text>
                       </TouchableOpacity>
                     );
@@ -150,7 +145,7 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
             </View>
           </ScrollView>
           <View className="pb-8">
-            <TouchableOpacity onPress={handleSave} disabled={!name || !phone || !relationship || loading} activeOpacity={0.7} style={{ height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: (!name || !phone || !relationship || loading) ? '#666' : '#A2D149', opacity: (!name || !phone || !relationship || loading) ? 0.5 : 1 }}>
+            <TouchableOpacity onPress={handleSave} disabled={!name || !phone || !relationship || loading} activeOpacity={0.7} style={{ height: 64, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: (!name || !phone || !relationship || loading) ? '#666' : '#A2D149', opacity: (!name || !phone || !relationship || loading) ? 0.5 : 1 }}>
               {loading ? (
                 <ActivityIndicator size="small" color="#0D0D0D" />
               ) : (
