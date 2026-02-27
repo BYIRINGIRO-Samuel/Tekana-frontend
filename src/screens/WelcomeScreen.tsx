@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import Animated, { 
   FadeInDown, 
   FadeIn, 
@@ -16,8 +15,7 @@ import { authService } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
-export default function WelcomeScreen() {
-  const navigation = useNavigation<any>();
+export default function WelcomeScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack?: () => void }) {
   
   const scanLinePos = useSharedValue(-100);
   const bgOpacity = useSharedValue(0.1);
@@ -25,7 +23,7 @@ export default function WelcomeScreen() {
   useEffect(() => {
     const checkUser = async () => {
       if (await authService.isAuthenticated()) {
-        navigation.replace('Dashboard');
+        navigate('Dashboard');
       }
     };
     checkUser();
@@ -115,7 +113,7 @@ export default function WelcomeScreen() {
         <View className="w-full">
           <Animated.View entering={FadeInDown.delay(700).duration(800)}>
             <TouchableOpacity 
-              onPress={() => navigation.navigate('Signup')}
+              onPress={() => navigate('Signup')}
               activeOpacity={0.8}
               className="bg-brand-green h-16 rounded-sm items-center justify-center flex-row overflow-hidden shadow-lg shadow-brand-green/20"
             >
@@ -126,7 +124,7 @@ export default function WelcomeScreen() {
           
           <Animated.View entering={FadeInDown.delay(900).duration(800)}>
             <TouchableOpacity 
-              onPress={() => navigation.navigate('Login')}
+              onPress={() => navigate('Login')}
               activeOpacity={0.6}
               className="h-16 mt-4 rounded-sm items-center justify-center border border-gray-800"
               style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}

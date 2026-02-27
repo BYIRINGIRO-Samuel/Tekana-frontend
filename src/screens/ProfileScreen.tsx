@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/authService';
 import api from '../services/api';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -17,8 +16,7 @@ interface UserProfile {
   createdAt: string;
 }
 
-export default function ProfileScreen() {
-  const navigation = useNavigation<any>();
+export default function ProfileScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack?: () => void }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,15 +49,15 @@ export default function ProfileScreen() {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await authService.logout();
-              navigation.replace('Intro');
-            } catch (error) {
-              console.error('Logout error:', error);
-              navigation.replace('Intro');
-            }
-          },
+            onPress: async () => {
+              try {
+                await authService.logout();
+                navigate('Intro');
+              } catch (error) {
+                console.error('Logout error:', error);
+                navigate('Intro');
+              }
+            },
         },
       ]
     );
@@ -94,7 +92,7 @@ export default function ProfileScreen() {
         {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity 
-            onPress={() => navigation.goBack()}
+            onPress={goBack}
             style={styles.backButton}
           >
             <Text style={styles.backButtonText}>←</Text>
@@ -170,7 +168,7 @@ export default function ProfileScreen() {
               
               <View style={styles.actionButtons}>
                 <TouchableOpacity 
-                  onPress={() => navigation.navigate('TrustedPeople')}
+                  onPress={() => navigate('TrustedPeople')}
                   style={styles.actionButton}
                 >
                   <Text style={styles.actionIcon}>👥</Text>
@@ -178,7 +176,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  onPress={() => navigation.navigate('Vault')}
+                  onPress={() => navigate('Vault')}
                   style={styles.actionButton}
                 >
                   <Text style={styles.actionIcon}>🛡️</Text>

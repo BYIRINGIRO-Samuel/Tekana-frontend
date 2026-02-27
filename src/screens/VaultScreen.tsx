@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Dimensions, Alert, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
@@ -15,17 +14,14 @@ interface Recording {
   modificationTime: number;
 }
 
-export default function VaultScreen() {
-  const navigation = useNavigation<any>();
+export default function VaultScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack: () => void }) {
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadRecordings();
-    }, [])
-  );
+  useEffect(() => {
+    loadRecordings();
+  }, []);
 
   const loadRecordings = async () => {
     try {

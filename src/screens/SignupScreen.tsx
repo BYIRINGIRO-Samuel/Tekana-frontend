@@ -1,11 +1,9 @@
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
 
-export default function SignupScreen() {
-  const navigation = useNavigation<any>();
+export default function SignupScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack?: () => void }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -27,7 +25,7 @@ export default function SignupScreen() {
         password,
         role: 'CITIZEN',
       });
-      navigation.navigate('Dashboard');
+      navigate('Dashboard');
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to create account. Please try again.';
       Alert.alert('Signup Failed', message);
@@ -113,7 +111,7 @@ export default function SignupScreen() {
 
           <View className="pb-8 items-center flex-row justify-center">
             <Text className="text-gray-500 text-base">Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => navigate('Login')}>
               <Text className="text-brand-green text-base font-bold">Sign In</Text>
             </TouchableOpacity>
           </View>

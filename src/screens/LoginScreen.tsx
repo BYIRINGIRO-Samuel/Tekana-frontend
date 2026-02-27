@@ -1,11 +1,9 @@
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
 
-export default function LoginScreen() {
-  const navigation = useNavigation<any>();
+export default function LoginScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack?: () => void }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +17,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await authService.login({ phone, password });
-      navigation.navigate('Dashboard');
+      navigate('Dashboard');
     } catch (error: any) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       Alert.alert('Login Error', message);
@@ -84,7 +82,7 @@ export default function LoginScreen() {
 
         <View className="pb-8 items-center flex-row justify-center">
           <Text className="text-gray-500 text-base">Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+          <TouchableOpacity onPress={() => navigate('Signup')}>
             <Text className="text-brand-green text-base font-bold">Sign Up</Text>
           </TouchableOpacity>
         </View>
