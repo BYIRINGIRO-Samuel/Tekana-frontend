@@ -109,9 +109,6 @@ export default function ProfileScreen({ navigate, goBack }: { navigate: (screen:
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{getInitials(profile.name)}</Text>
                 </View>
-                <View style={[styles.verificationBadge, { backgroundColor: profile.isVerified ? '#A2D149' : '#EF4444' }]}>
-                  <Text style={styles.verificationText}>{profile.isVerified ? '✓' : '!'}</Text>
-                </View>
               </View>
               <Text style={styles.userName}>{profile.name}</Text>
               <Text style={styles.userRole}>{profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}</Text>
@@ -275,23 +272,6 @@ const styles = StyleSheet.create({
     color: '#0D0D0D',
     fontSize: 32,
     fontWeight: '900',
-  },
-  verificationBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#0D0D0D',
-  },
-  verificationText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   userName: {
     color: '#FFF',
