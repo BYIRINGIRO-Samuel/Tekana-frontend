@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, CameraView, CameraMountError } from 'expo-camera';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
+import { incidentService } from '../services/incidentService';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -150,6 +151,16 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
         setIsActualRecording(true);
         setIsPreparing(false);
         
+        try {
+          await incidentService.createIncident({
+             type: 'SOS_ALERT',
+             locationLat: -1.9441, 
+             locationLng: 30.0619,
+          });
+        } catch (incidentError) {
+          console.log(`Failed to create backend incident:`, incidentError);
+        }
+        
         const video = await videoPromise;
         if (video && !isCanceled.current) {
           const fileName = `sos_${Date.now()}.mp4`;
@@ -179,6 +190,16 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
                   setTimeout(async () => {
                     setIsPreparing(false);
                     setIsActualRecording(true);
+                    
+                    try {
+                      await incidentService.createIncident({
+                         type: 'SOS_ALERT',
+                         locationLat: -1.9441, 
+                         locationLng: 30.0619,
+                      });
+                    } catch (incidentError) {
+                      console.log(`Failed to create backend incident:`, incidentError);
+                    }
                     
                     setTimeout(async () => {
                       const fileName = `simulated_sos_${Date.now()}.mp4`;

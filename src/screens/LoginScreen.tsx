@@ -16,8 +16,12 @@ export default function LoginScreen({ navigate, goBack }: { navigate: (screen: s
 
     setLoading(true);
     try {
-      await authService.login({ phone, password });
-      navigate('Dashboard');
+      const response = await authService.login({ phone, password });
+      if (response.user.role.toUpperCase() === 'ADMIN') {
+        navigate('AdminDashboard');
+      } else {
+        navigate('Dashboard');
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       Alert.alert('Login Error', message);

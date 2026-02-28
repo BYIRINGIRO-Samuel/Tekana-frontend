@@ -180,6 +180,18 @@ export default function ProfileScreen({ navigate, goBack }: { navigate: (screen:
                   <Text style={styles.actionText}>Secure Vault</Text>
                 </TouchableOpacity>
               </View>
+
+              {profile?.role?.toUpperCase() === 'ADMIN' && (
+                <View style={[styles.actionButtons, { marginTop: 16 }]}>
+                  <TouchableOpacity 
+                    onPress={() => navigate('AdminDashboard')}
+                    style={[styles.actionButton, { borderColor: '#A2D149', borderWidth: 2 }]}
+                  >
+                    <Text style={styles.actionIcon}>⚙️</Text>
+                    <Text style={styles.actionText}>Admin Portal</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
 
             {/* Logout Button */}

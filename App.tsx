@@ -11,6 +11,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import TrustedPeopleScreen from './src/screens/TrustedPeopleScreen';
 import VaultScreen from './src/screens/VaultScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 
 export default function App() {
   const [screenStack, setScreenStack] = useState<string[]>(['Intro']);
@@ -45,6 +46,8 @@ export default function App() {
         return <VaultScreen navigate={navigate} goBack={goBack} />;
       case 'Profile':
         return <ProfileScreen navigate={navigate} goBack={goBack} />;
+      case 'AdminDashboard':
+        return <AdminDashboardScreen navigate={navigate} goBack={goBack} />;
       default:
         return <IntroAnimationScreen navigate={navigate} />;
     }
