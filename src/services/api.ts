@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 //   : 'http://localhost:3086/api';
 
 // For Android device, use your computer's IP address
-const BASE_URL = 'http://10.12.75.205:3086/api'; // Your Wi-Fi IP address
+const BASE_URL = 'http://10.11.75.148:3086/api'; // Your Wi-Fi IP address
 
 const api = axios.create({
     baseURL: BASE_URL,

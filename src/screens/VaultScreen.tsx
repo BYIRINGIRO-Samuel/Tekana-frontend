@@ -14,6 +14,11 @@ interface Recording {
   modificationTime: number;
 }
 
+interface FileInfo {
+  size?: number;
+  modificationTime?: number;
+}
+
 export default function VaultScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack: () => void }) {
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -32,12 +37,12 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
       
       const recordingData = await Promise.all(
         files.map(async (file) => {
-          const info = await FileSystem.getInfoAsync(recordingDir + file);
+          const info = await FileSystem.getInfoAsync(recordingDir + file) as FileInfo;
           return {
             name: file,
             uri: recordingDir + file,
-            size: (info as any).size || 0,
-            modificationTime: (info as any).modificationTime || 0,
+            size: info.size || 0,
+            modificationTime: info.modificationTime || 0,
           };
         })
       );
@@ -142,7 +147,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
       <SafeAreaView className="flex-1">
         <View className="px-6 py-4 flex-row justify-between items-center">
           <TouchableOpacity 
-            onPress={() => navigation.goBack()}
+            onPress={() => goBack()}
             className="w-10 h-10 rounded-full bg-brand-muted items-center justify-center border border-gray-800"
           >
             <Text className="text-white text-xl">←</Text>
