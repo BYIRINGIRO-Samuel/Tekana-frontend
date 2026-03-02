@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Dimensions, Alert, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system/legacy';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
+import { userRecordingService, UserRecording } from '../services/userRecordingService';
+import { authService } from '../services/authService';
 
 const { width } = Dimensions.get('window');
 
-interface Recording {
-  name: string;
-  uri: string;
-  size: number;
-  modificationTime: number;
-}
-
-interface FileInfo {
-  size?: number;
-  modificationTime?: number;
-}
-
 export default function VaultScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack: () => void }) {
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [recordings, setRecordings] = useState<UserRecording[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,24 +20,11 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
   const loadRecordings = async () => {
     try {
       setLoading(true);
-      const recordingDir = `${FileSystem.documentDirectory}recordings/`;
-      const allFiles = await FileSystem.readDirectoryAsync(recordingDir);
-      const files = allFiles.filter(f => f.endsWith('.mp4'));
-      
-      const recordingData = await Promise.all(
-        files.map(async (file) => {
-          const info = await FileSystem.getInfoAsync(recordingDir + file) as FileInfo;
-          return {
-            name: file,
-            uri: recordingDir + file,
-            size: info.size || 0,
-            modificationTime: info.modificationTime || 0,
-          };
-        })
-      );
-
-      // Sort by newest first
-      setRecordings(recordingData.sort((a, b) => b.modificationTime - a.modificationTime));
+      const user = await authService.getCurrentUser();
+      if (user) {
+        const recordingsData = await userRecordingService.getUserRecordings(user.id);
+        setRecordings(recordingsData);
+      }
     } catch (e) {
       console.error("Failed to load recordings", e);
     } finally {
@@ -56,7 +32,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
     }
   };
 
-  const deleteRecording = async (uri: string) => {
+  const deleteRecording = async (recordingId: string) => {
     Alert.alert(
       "Confirm Deletion",
       "Are you sure you want to permanently delete this SOS recording?",
@@ -66,9 +42,16 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
           text: "Delete", 
           style: "destructive", 
           onPress: async () => {
-            await FileSystem.deleteAsync(uri);
-            loadRecordings();
-            if (selectedVideo === uri) setSelectedVideo(null);
+            try {
+              const user = await authService.getCurrentUser();
+              if (user) {
+                await userRecordingService.deleteRecording(user.id, recordingId);
+                loadRecordings();
+                if (selectedVideo === recordingId) setSelectedVideo(null);
+              }
+            } catch (error) {
+              console.error('Failed to delete recording:', error);
+            }
           }
         }
       ]
@@ -83,8 +66,8 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
     }
   };
 
-  const renderItem = ({ item, index }: { item: Recording, index: number }) => {
-    const date = new Date(item.modificationTime * 1000);
+  const renderItem = ({ item, index }: { item: UserRecording, index: number }) => {
+    const date = new Date(item.createdAt);
     const dateStr = date.toLocaleDateString();
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -94,14 +77,14 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
         className="mb-4 mx-6 rounded-3xl overflow-hidden bg-brand-muted border border-gray-800"
       >
         <TouchableOpacity 
-          onPress={() => setSelectedVideo(item.uri)}
+          onPress={() => setSelectedVideo(item.id)}
           className="p-4 flex-row items-center"
         >
           <View className="w-14 h-14 rounded-2xl bg-brand-dark items-center justify-center mr-4 border border-gray-700">
             <Text className="text-2xl">📹</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-white font-bold text-lg">SOS Recording</Text>
+            <Text className="text-white font-bold text-lg">{item.title}</Text>
             <Text className="text-gray-400 text-sm">{dateStr} • {timeStr}</Text>
           </View>
           <View className="bg-brand-green/10 px-3 py-1 rounded-full border border-brand-green/20">
@@ -109,30 +92,27 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
           </View>
         </TouchableOpacity>
 
-        {selectedVideo === item.uri && (
+        {selectedVideo === item.id && (
           <View className="h-64 w-full bg-black">
             <Video
-              source={{ uri: item.uri }}
-              rate={1.0}
-              volume={1.0}
-              isMuted={false}
+              source={{ uri: `http://localhost:3000${item.fileUrl}` }}
+              style={StyleSheet.absoluteFill}
+              useNativeControls
               resizeMode={ResizeMode.CONTAIN}
               shouldPlay
-              useNativeControls
-              style={StyleSheet.absoluteFill}
             />
           </View>
         )}
 
         <View className="flex-row border-t border-gray-800 bg-brand-dark/30">
           <TouchableOpacity 
-            onPress={() => shareRecording(item.uri)}
+            onPress={() => shareRecording(item.fileUrl)}
             className="flex-1 py-3 items-center border-r border-gray-800"
           >
             <Text className="text-blue-400 font-medium">Share Feed</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            onPress={() => deleteRecording(item.uri)}
+            onPress={() => deleteRecording(item.id)}
             className="flex-1 py-3 items-center"
           >
             <Text className="text-red-400 font-medium">Purge Data</Text>
@@ -175,7 +155,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
         ) : (
           <FlatList
             data={recordings}
-            keyExtractor={(item) => item.uri}
+            keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={{ paddingBottom: 40 }}
             refreshing={loading}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, KeyboardAvoidingView, ScrollView, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authService } from '../services/authService';
+import { userService } from '../services/userService';
 
 interface TrustedContact {
   id: string;
@@ -39,64 +40,61 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
   const [phone, setPhone] = useState('');
   const [relationship, setRelationship] = useState('');
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    loadContacts();
+    const init = async () => {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      loadContacts(currentUser?.id);
+    };
+    init();
   }, []);
 
-  const loadContacts = async () => {
+  const loadContacts = async (userId?: string) => {
+    if (!userId) return;
     try {
-      const stored = await AsyncStorage.getItem('trusted_contacts');
-      if (stored) {
-        setTrustedContacts(JSON.parse(stored));
-      }
+      const response = await userService.getTrustedContacts(userId);
+      const contacts = response.map((contact: any) => ({
+        ...contact,
+        initials: contact.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
+      }));
+      setTrustedContacts(contacts);
     } catch (error) {
       console.error('Failed to load contacts:', error);
     }
   };
 
-  const saveContacts = async (contacts: TrustedContact[]) => {
+  // Removed saveContacts as we're using API directly
+
+  // Function to add contact from AddPersonScreen
+  const addContact = async (contact: Omit<TrustedContact, 'id' | 'initials'>) => {
+    if (!user?.id) return;
     try {
-      await AsyncStorage.setItem('trusted_contacts', JSON.stringify(contacts));
+      await userService.addTrustedContact(user.id, contact);
+      loadContacts(user.id);
     } catch (error) {
-      console.error('Failed to save contacts:', error);
+      console.error('Failed to add contact:', error);
     }
   };
 
-  // Function to add contact from AddPersonScreen
-  const addContact = (contact: Omit<TrustedContact, 'id'>) => {
-    const newContact: TrustedContact = {
-      ...contact,
-      id: Date.now().toString(),
-    };
-    const updated = [...trustedContacts, newContact];
-    setTrustedContacts(updated);
-    saveContacts(updated);
-  };
-
-  const deleteContact = (id: string) => {
-    const updated = trustedContacts.filter(c => c.id !== id);
-    setTrustedContacts(updated);
-    saveContacts(updated);
+  const deleteContact = async (id: string) => {
+    if (!user?.id) return;
+    try {
+      await userService.removeTrustedContact(user.id, id);
+      loadContacts(user.id);
+    } catch (error) {
+      console.error('Failed to delete contact:', error);
+    }
   };
 
   const handleSave = async () => {
-    if (!name || !phone || !relationship) return;
+    if (!name || !phone || !relationship || !user?.id) return;
 
     setLoading(true);
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    const newContact = {
-      id: Date.now().toString(),
-      name,
-      phone,
-      relationship,
-      initials,
-    };
-
     try {
-      const contacts = [newContact, ...trustedContacts];
-      setTrustedContacts(contacts);
-      await saveContacts(contacts);
+      await userService.addTrustedContact(user.id, { name, phone, relationship });
+      loadContacts(user.id);
       setIsAdding(false);
       setName('');
       setPhone('');

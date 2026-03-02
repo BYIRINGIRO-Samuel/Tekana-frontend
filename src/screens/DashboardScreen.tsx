@@ -5,6 +5,7 @@ import { Camera, CameraView, CameraMountError } from 'expo-camera';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
 import { incidentService } from '../services/incidentService';
+import { userRecordingService } from '../services/userRecordingService';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -153,7 +154,7 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
         
         try {
           await incidentService.createIncident({
-             type: 'SOS_ALERT',
+             type: 'SOS',
              locationLat: -1.9441, 
              locationLng: 30.0619,
           });
@@ -166,7 +167,26 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
           const fileName = `sos_${Date.now()}.mp4`;
           const destination = `${FileSystem.documentDirectory}recordings/${fileName}`;
           await FileSystem.copyAsync({ from: video.uri, to: destination });
+
+          // Upload to backend
+          try {
+            const user = await authService.getCurrentUser();
+            if (user) {
+              const fileInfo = await FileSystem.getInfoAsync(destination);
+              const file = {
+                uri: destination,
+                name: fileName,
+                type: 'video/mp4',
+                size: fileInfo.size,
+              } as any;
+              await userRecordingService.uploadRecording(user.id, 'SOS Recording', file);
+            }
+          } catch (uploadError) {
+            console.log('Failed to upload to backend:', uploadError);
+          }
+
           Alert.alert("SOS Saved", "Emergency recording stored in your secure vault.");
+          navigate('Vault');
         }
       } catch (e: any) {
         setIsActualRecording(false);
@@ -193,7 +213,7 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
                     
                     try {
                       await incidentService.createIncident({
-                         type: 'SOS_ALERT',
+                         type: 'SOS',
                          locationLat: -1.9441, 
                          locationLng: 30.0619,
                       });
@@ -207,6 +227,7 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
                       await FileSystem.writeAsStringAsync(destination, "Simulated SOS Data");
                       Alert.alert("Simulation Complete", "Mock recording saved to Vault.");
                       stopSOS();
+                      navigate('Vault');
                     }, 4000); // 4 seconds of "live" recording
                   }, 1500); // 1.5s of "securing"
                 }
