@@ -7,9 +7,14 @@ import { incidentService } from '../services/incidentService';
 import { authService } from '../services/authService';
 
 export default function AdminDashboardScreen({ navigate }: { navigate: (screen: string) => void }) {
-  const [activeTab, setActiveTab] = useState<'users' | 'incidents' | 'profile'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'incidents' | 'profile'>('profile');
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({ users: 0, incidents: 0, activeIncidents: 0 });
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   useEffect(() => {
     if (activeTab === 'users') {
@@ -18,6 +23,24 @@ export default function AdminDashboardScreen({ navigate }: { navigate: (screen: 
       loadIncidents();
     }
   }, [activeTab]);
+
+  const loadStats = async () => {
+    try {
+      const [usersRes, incidentsRes] = await Promise.all([
+        adminService.getAllUsers(),
+        incidentService.getIncidents()
+      ]);
+      const users = Array.isArray(usersRes) ? usersRes : usersRes.data || [];
+      const incidents = Array.isArray(incidentsRes) ? incidentsRes : incidentsRes.data || [];
+      setStats({
+        users: users.length,
+        incidents: incidents.length,
+        activeIncidents: incidents.filter((i: any) => i.status === 'REPORTED').length
+      });
+    } catch (error) {
+      console.error('Failed to load stats', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -62,19 +85,38 @@ export default function AdminDashboardScreen({ navigate }: { navigate: (screen: 
   const renderCurrentTab = () => {
     if (activeTab === 'profile') {
       return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#A2D149', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-            <Text style={{ fontSize: 32, fontWeight: '900', color: '#000' }}>AD</Text>
+        <View style={{ flex: 1, padding: 20 }}>
+          <Text style={{ color: 'white', fontSize: 28, fontWeight: 'bold', marginBottom: 20 }}>Admin Dashboard</Text>
+          
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30 }}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{stats.users}</Text>
+              <Text style={styles.statLabel}>Total Users</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{stats.incidents}</Text>
+              <Text style={styles.statLabel}>Total Incidents</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{stats.activeIncidents}</Text>
+              <Text style={styles.statLabel}>Active Incidents</Text>
+            </View>
           </View>
-          <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>Admin User</Text>
-          <Text style={{ color: 'gray', fontSize: 16, marginBottom: 40, marginTop: 4 }}>System Administrator</Text>
 
-          <TouchableOpacity 
-            onPress={handleLogout}
-            style={{ backgroundColor: '#EF4444', width: '100%', padding: 20, borderRadius: 16, alignItems: 'center' }}
-          >
-            <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>Terminate Session</Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: '#A2D149', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: 36, fontWeight: '900', color: '#000' }}>AD</Text>
+            </View>
+            <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>System Administrator</Text>
+            <Text style={{ color: 'gray', fontSize: 16, marginBottom: 40, marginTop: 4 }}>Full System Access</Text>
+
+            <TouchableOpacity 
+              onPress={handleLogout}
+              style={{ backgroundColor: '#EF4444', width: '100%', padding: 20, borderRadius: 16, alignItems: 'center' }}
+            >
+              <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>Terminate Session</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       );
     }
@@ -178,17 +220,97 @@ export default function AdminDashboardScreen({ navigate }: { navigate: (screen: 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0A0A' },
-  header: { padding: 24, paddingBottom: 10 },
-  headerTitle: { color: 'white', fontSize: 32, fontWeight: '900', letterSpacing: -1 },
-  subtitle: { color: 'gray', marginTop: 4, fontSize: 16 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  card: { backgroundColor: '#141414', padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: '#222', flexDirection: 'row' },
-  cardTitle: { color: 'white', fontSize: 18, fontWeight: 'bold', marginBottom: 2 },
-  cardSubtitle: { color: '#888', fontSize: 13 },
-  badge: { backgroundColor: 'rgba(162, 209, 73, 0.1)', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginTop: 8, borderWidth: 1, borderColor: 'rgba(162, 209, 73, 0.3)' },
-  badgeText: { color: '#A2D149', fontSize: 10, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
-  statusText: { fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
+  container: {
+    flex: 1,
+    backgroundColor: '#0A0A0A',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 10,
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    color: 'gray',
+    fontSize: 14,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 5,
+  },
+  activeTab: {
+    backgroundColor: '#A2D149',
+  },
+  inactiveTab: {
+    backgroundColor: '#333',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    backgroundColor: '#1A1A1A',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  cardTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    color: 'gray',
+    fontSize: 14,
+  },
+  badge: {
+    backgroundColor: '#A2D149',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  badgeText: {
+    color: 'black',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  statCard: {
+    backgroundColor: '#1A1A1A',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#A2D149',
+  },
+  statNumber: {
+    color: '#A2D149',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    color: 'white',
+    fontSize: 14,
+    marginTop: 8,
+  },
   bottomBarContainer: {
     position: 'absolute',
     bottom: 0,
@@ -224,5 +346,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 8,
     fontSize: 14,
-  }
+  },
 });
