@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet, Alert, SafeAreaView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet, Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { userService } from '../services/userService';
+import { adminService } from '../services/adminService';
 import { incidentService } from '../services/incidentService';
 import { authService } from '../services/authService';
 
@@ -20,7 +22,7 @@ export default function AdminDashboardScreen({ navigate }: { navigate: (screen: 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const res = await userService.getUsers();
+      const res = await adminService.getAllUsers();
       setData(Array.isArray(res) ? res : res.data || []);
     } catch (error) {
       console.error('Failed to load users', error);
@@ -118,7 +120,7 @@ export default function AdminDashboardScreen({ navigate }: { navigate: (screen: 
                 <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: item.severity === 'HIGH' ? '#EF4444' : '#EAB308' }]}>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.cardTitle, { color: item.severity === 'HIGH' ? '#EF4444' : 'white' }]}>
-                      {item.type.replace('_', ' ')}
+                      {item.type ? item.type.replace('_', ' ') : 'Unknown'}
                     </Text>
                     <Text style={styles.cardSubtitle}>Severity: {item.severity}</Text>
                     <Text style={[styles.cardSubtitle, { marginTop: 4, fontStyle: 'italic' }]}>
