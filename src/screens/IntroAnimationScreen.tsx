@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import LottieView from 'lottie-react-native';
+// import LottieView from 'lottie-react-native';
 import Animated, { FadeOut, FadeIn } from 'react-native-reanimated';
 import { authService } from '../services/authService';
 
@@ -35,12 +35,7 @@ export default function IntroAnimationScreen({ navigate }: { navigate: (screen: 
 
   return (
     <Animated.View exiting={FadeOut.duration(800)} style={styles.container}>
-      <LottieView
-        source={{ uri: 'https://lottie.host/7970d4f3-7848-4395-8854-fc946e356885/mB1XbL3Oat.json' }}
-        autoPlay
-        loop={false}
-        style={styles.animation}
-      />
+      <View style={styles.animation} />
       <View style={{ position: 'absolute', bottom: 100 }}>
         <Animated.Text entering={FadeIn.delay(1000)} style={styles.fallbackText}>
           Tekana

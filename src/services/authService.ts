@@ -45,7 +45,9 @@ export const authService = {
 
     async saveSession(data: AuthResponse) {
         await AsyncStorage.setItem('user_token', data.token);
+        console.log('Token saved:', data.token);
         await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
+        console.log('User data saved:', data.user);
     },
 
     async logout() {
@@ -66,12 +68,14 @@ export const authService = {
 
     async getCurrentUser() {
         const userData = await AsyncStorage.getItem('user_data');
+        console.log('Retrieved userData:', userData);
         return userData ? JSON.parse(userData) : null;
     },
 
     async isAuthenticated() {
         try {
             const token = await AsyncStorage.getItem('user_token');
+            console.log('Retrieved token:', token);
             return !!token;
         } catch (error) {
             console.error('AsyncStorage error:', error);

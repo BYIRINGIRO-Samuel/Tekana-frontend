@@ -5,6 +5,8 @@ import { Video, ResizeMode } from 'expo-av';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 import { userRecordingService, UserRecording } from '../services/userRecordingService';
 import { authService } from '../services/authService';
+import api from '../services/api';
+import io from 'socket.io-client';
 
 const { width } = Dimensions.get('window');
 
@@ -15,17 +17,41 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
 
   useEffect(() => {
     loadRecordings();
+
+    const socket = io('http://10.12.75.205:3000');
+    authService.getCurrentUser().then(user => {
+      if (user) {
+        socket.emit('join', user.id);
+        socket.on('recordingAdded', () => {
+          loadRecordings();
+        });
+      }
+    });
+
+    // Fallback polling every 10 seconds
+    const interval = setInterval(() => {
+      loadRecordings();
+    }, 10000);
+
+    return () => {
+      socket.disconnect();
+      clearInterval(interval);
+    };
   }, []);
 
   const loadRecordings = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const user = await authService.getCurrentUser();
       if (user) {
+        console.log('Loading recordings for user:', user.id);
+        console.log('API baseURL:', api.defaults.baseURL);
         const recordingsData = await userRecordingService.getUserRecordings(user.id);
+        console.log('Fetched recordings from DB:', recordingsData);
         setRecordings(recordingsData);
       }
     } catch (e) {
+      console.log('Error loading recordings:', e);
       console.error("Failed to load recordings", e);
     } finally {
       setLoading(false);
@@ -84,7 +110,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
             <Text className="text-2xl">📹</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-white font-bold text-lg">{item.title}</Text>
+            <Text className="text-white font-bold text-lg">{item.location || 'SOS Recording'}</Text>
             <Text className="text-gray-400 text-sm">{dateStr} • {timeStr}</Text>
           </View>
           <View className="bg-brand-green/10 px-3 py-1 rounded-full border border-brand-green/20">
@@ -95,7 +121,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
         {selectedVideo === item.id && (
           <View className="h-64 w-full bg-black">
             <Video
-              source={{ uri: `http://localhost:3000${item.fileUrl}` }}
+              source={{ uri: item.videoUrl }}
               style={StyleSheet.absoluteFill}
               useNativeControls
               resizeMode={ResizeMode.CONTAIN}
@@ -106,7 +132,7 @@ export default function VaultScreen({ navigate, goBack }: { navigate: (screen: s
 
         <View className="flex-row border-t border-gray-800 bg-brand-dark/30">
           <TouchableOpacity 
-            onPress={() => shareRecording(item.fileUrl)}
+            onPress={() => shareRecording(item.videoUrl)}
             className="flex-1 py-3 items-center border-r border-gray-800"
           >
             <Text className="text-blue-400 font-medium">Share Feed</Text>

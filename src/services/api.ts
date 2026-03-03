@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 //   : 'http://localhost:3086/api';
 
 // For Android device, use your computer's IP address
-const BASE_URL = 'http://10.12.75.205:3086/api'; // Your Wi-Fi IP address
+const BASE_URL = 'http://10.12.75.205:3000/api'; // Your Wi-Fi IP address
 
 const api = axios.create({
     baseURL: BASE_URL,
@@ -20,13 +20,9 @@ const api = axios.create({
 // Add request interceptor to include JWT token
 api.interceptors.request.use(
     async (config) => {
-        try {
-            const token = await AsyncStorage.getItem('user_token');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-        } catch (error) {
-            console.error('AsyncStorage error in interceptor:', error);
+        const token = await AsyncStorage.getItem('user_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },

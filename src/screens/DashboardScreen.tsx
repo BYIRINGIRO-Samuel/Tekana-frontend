@@ -3,9 +3,11 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, Alert, Act
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, CameraView, CameraMountError } from 'expo-camera';
 import { Audio } from 'expo-av';
+import * as Location from 'expo-location';
 import * as FileSystem from 'expo-file-system/legacy';
 import { incidentService } from '../services/incidentService';
 import { userRecordingService } from '../services/userRecordingService';
+import { authService } from '../services/authService';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -16,6 +18,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import { cssInterop } from 'nativewind';
+import Toast from 'react-native-toast-message';
 
 // Link Reanimated with NativeWind
 cssInterop(Animated.View, { className: 'style' });
@@ -95,12 +98,16 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
   const cameraRef = useRef<CameraView>(null);
   const pulse = useSharedValue(1);
   const isCanceled = useRef(false);
+  const [currentLocation, setCurrentLocation] = useState<string>('');
+  const [currentLat, setCurrentLat] = useState<number | null>(null);
+  const [currentLng, setCurrentLng] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
       const { status: camStatus } = await Camera.requestCameraPermissionsAsync();
       const { status: micStatus } = await Audio.requestPermissionsAsync();
-      setHasPermission(camStatus === 'granted' && micStatus === 'granted');
+      const { status: locStatus } = await Location.requestForegroundPermissionsAsync();
+      setHasPermission(camStatus === 'granted' && micStatus === 'granted' && locStatus === 'granted');
       
       try {
         const recordingDir = `${FileSystem.documentDirectory}recordings/`;
@@ -137,17 +144,21 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
     setIsActualRecording(false);
     setIsRecording(false);
     setIsPreparing(false);
+    navigate('Vault');
   }, [isActualRecording]);
 
   const runRecordingSequence = useCallback(async () => {
-    if (isCanceled.current || !cameraRef.current || isActualRecording) return;
+    if (isCanceled.current || !cameraRef.current) return;
 
     const tryToRecord = async (attempt = 0) => {
       if (isCanceled.current || !cameraRef.current) return;
       
       try {
         console.log(`[SOS] Record attempt ${attempt}...`);
-        const videoPromise = cameraRef.current.recordAsync();
+        // @ts-ignore
+        const recording = await cameraRef.current.recordAsync({});
+        if (!recording) throw new Error('Recording failed');
+        const uri = recording.uri;
         
         setIsActualRecording(true);
         setIsPreparing(false);
@@ -155,38 +166,35 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
         try {
           await incidentService.createIncident({
              type: 'SOS',
-             locationLat: -1.9441, 
-             locationLng: 30.0619,
+             locationLat: currentLat ?? -1.9441,
+             locationLng: currentLng ?? 30.0619,
           });
         } catch (incidentError) {
           console.log(`Failed to create backend incident:`, incidentError);
         }
         
-        const video = await videoPromise;
-        if (video && !isCanceled.current) {
-          const fileName = `sos_${Date.now()}.mp4`;
-          const destination = `${FileSystem.documentDirectory}recordings/${fileName}`;
-          await FileSystem.copyAsync({ from: video.uri, to: destination });
-
-          // Upload to backend
-          try {
-            const user = await authService.getCurrentUser();
-            if (user) {
-              const fileInfo = await FileSystem.getInfoAsync(destination);
-              const file = {
-                uri: destination,
-                name: fileName,
-                type: 'video/mp4',
-                size: fileInfo.size,
-              } as any;
-              await userRecordingService.uploadRecording(user.id, 'SOS Recording', file);
-            }
-          } catch (uploadError) {
-            console.log('Failed to upload to backend:', uploadError);
+        const fileName = `sos_${Date.now()}.mp4`;
+        const fileUri = uri;
+        
+        // Upload to backend directly from URI
+        try {
+          const user = await authService.getCurrentUser();
+          if (user) {
+            const file = {
+              uri: fileUri,
+              name: fileName,
+              type: 'video/mp4',
+              size: 0, // Size unknown, but not required
+            } as any;
+            await userRecordingService.uploadRecording(user.id, 'SOS Recording', file, currentLocation);
+            Toast.show({
+              text1: 'Video Saved',
+              text2: 'Your SOS recording has been stored securely.',
+            });
+            navigate('Vault');
           }
-
-          Alert.alert("SOS Saved", "Emergency recording stored in your secure vault.");
-          navigate('Vault');
+        } catch (uploadError) {
+          console.log('Failed to upload to backend:', uploadError);
         }
       } catch (e: any) {
         setIsActualRecording(false);
@@ -225,7 +233,30 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
                       const fileName = `simulated_sos_${Date.now()}.mp4`;
                       const destination = `${FileSystem.documentDirectory}recordings/${fileName}`;
                       await FileSystem.writeAsStringAsync(destination, "Simulated SOS Data");
-                      Alert.alert("Simulation Complete", "Mock recording saved to Vault.");
+                      
+                      // Upload mock recording to backend
+                      try {
+                        const user = await authService.getCurrentUser();
+                        if (user) {
+                          const fileInfo = await FileSystem.getInfoAsync(destination);
+                          const file = {
+                            uri: destination,
+                            name: fileName,
+                            type: 'video/mp4',
+                            // @ts-ignore
+                            size: fileInfo.size || 0,
+                          } as any;
+                          await userRecordingService.uploadRecording(user.id, 'SOS Recording', file, currentLocation);
+                          Toast.show({
+                            text1: 'Video Saved',
+                            text2: 'Your SOS recording has been stored securely.',
+                          });
+                          navigate('Vault');
+                        }
+                      } catch (uploadError) {
+                        console.log('Failed to upload mock recording:', uploadError);
+                      }
+                      
                       stopSOS();
                       navigate('Vault');
                     }, 4000); // 4 seconds of "live" recording
@@ -238,13 +269,37 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
       }
     };
 
-    setTimeout(() => tryToRecord(0), 1000);
+    tryToRecord(0);
   }, [isActualRecording, stopSOS]);
 
   const startSOS = useCallback(async () => {
     isCanceled.current = false;
     setIsRecording(true);
-    setIsPreparing(true);
+    setIsActualRecording(true);
+    
+    // Get location synchronously
+    try {
+      const loc = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = loc.coords;
+      let locationString = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      
+      try {
+        const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
+        if (geocode.length > 0) {
+          const addr = geocode[0];
+          const parts = [addr.name, addr.street, addr.city, addr.region, addr.country].filter(Boolean);
+          locationString = parts.length > 0 ? `${parts.join(', ')} (${latitude.toFixed(6)}, ${longitude.toFixed(6)})` : locationString;
+        }
+      } catch (geoError) {
+        console.log('Reverse geocoding failed:', geoError);
+      }
+      
+      setCurrentLocation(locationString);
+    } catch (locError) {
+      console.log('Failed to get location:', locError);
+      setCurrentLocation('Location unavailable');
+    }
+    
     if (isCameraReady) {
       runRecordingSequence();
     }
