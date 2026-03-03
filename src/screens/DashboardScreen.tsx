@@ -164,11 +164,15 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
         setIsPreparing(false);
         
         try {
-          await incidentService.createIncident({
+          const incident = await incidentService.createIncident({
              type: 'SOS',
              locationLat: currentLat ?? -1.9441,
              locationLng: currentLng ?? 30.0619,
           });
+          // Use the backend's reverse geocoded address for detailed location
+          if (incident.locationAddress) {
+            setCurrentLocation(incident.locationAddress);
+          }
         } catch (incidentError) {
           console.log(`Failed to create backend incident:`, incidentError);
         }
@@ -287,8 +291,9 @@ export default function DashboardScreen({ navigate, goBack }: { navigate: (scree
         const geocode = await Location.reverseGeocodeAsync({ latitude, longitude });
         if (geocode.length > 0) {
           const addr = geocode[0];
-          const parts = [addr.name, addr.street, addr.city, addr.region, addr.country].filter(Boolean);
-          locationString = parts.length > 0 ? `${parts.join(', ')} (${latitude.toFixed(6)}, ${longitude.toFixed(6)})` : locationString;
+          const city = addr.city || addr.name || 'Unknown';
+          const country = addr.country || '';
+          locationString = `${city}${country ? ', ' + country : ''} (${latitude.toFixed(6)}, ${longitude.toFixed(6)})`;
         }
       } catch (geoError) {
         console.log('Reverse geocoding failed:', geoError);
