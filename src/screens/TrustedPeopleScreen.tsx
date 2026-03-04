@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, KeyboardAvoidingView, ScrollView, TextInput, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, KeyboardAvoidingView, ScrollView, TextInput, ActivityIndicator, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 
@@ -15,11 +16,7 @@ interface TrustedContact {
 const DEFAULT_CONTACTS: TrustedContact[] = [];
 
 const ContactCard = ({ contact, onDelete }: { contact: TrustedContact, onDelete: (id: string) => void }) => (
-  <TouchableOpacity 
-    activeOpacity={0.7}
-    onLongPress={() => onDelete(contact.id)}
-    className="bg-brand-muted mb-4 p-5 rounded-xl border border-gray-800 flex-row items-center"
-  >
+  <View className="bg-brand-muted mb-4 p-5 rounded-xl border border-gray-800 flex-row items-center">
     <View className="w-14 h-14 rounded-lg bg-brand-green/10 border border-brand-green/30 items-center justify-center mr-4">
       <Text className="text-brand-green font-black text-xl">{contact.initials}</Text>
     </View>
@@ -27,10 +24,13 @@ const ContactCard = ({ contact, onDelete }: { contact: TrustedContact, onDelete:
       <Text className="text-white font-bold text-lg mb-1">{contact.name}</Text>
       <Text className="text-gray-500 font-medium text-sm">{contact.phone}</Text>
     </View>
-    <View className="bg-brand-green/20 px-3 py-1 rounded-full border border-brand-green/20">
+    <View className="bg-brand-green/20 px-3 py-1 rounded-full border border-brand-green/20 mr-2">
       <Text className="text-brand-green text-[10px] font-black uppercase tracking-widest">{contact.relationship}</Text>
     </View>
-  </TouchableOpacity>
+    <TouchableOpacity onPress={() => Alert.alert('Delete Contact', 'Are you sure you want to delete this trusted contact?', [{ text: 'Cancel' }, { text: 'Delete', style: 'destructive', onPress: () => onDelete(contact.id) }])} className="p-2">
+      <Ionicons name="trash" size={20} color="#ff4444" />
+    </TouchableOpacity>
+  </View>
 );
 
 export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack: () => void }) {
