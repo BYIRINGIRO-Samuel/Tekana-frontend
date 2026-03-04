@@ -19,16 +19,16 @@ export default function LoginScreen({ navigate, goBack }: { navigate: (screen: s
     setLoading(true);
     try {
       const response = await authService.login({ phone, password });
+      setLoading(false);
       if (response.user.role.toUpperCase() === 'ADMIN') {
         navigate('AdminDashboard');
       } else {
         navigate('Dashboard');
       }
     } catch (error: any) {
+      setLoading(false);
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       Alert.alert('Login Error', message);
-    } finally {
-      setLoading(false);
     }
   };
 

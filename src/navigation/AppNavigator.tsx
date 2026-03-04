@@ -9,6 +9,7 @@ import AddPersonScreen from '../screens/AddPersonScreen';
 import VaultScreen from '../screens/VaultScreen';
 import IntroAnimationScreen from '../screens/IntroAnimationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 export type RootStackParamList = {
   Intro: undefined;
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   AddPerson: undefined;
   Vault: undefined;
   Profile: undefined;
+  Notifications: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -42,6 +44,7 @@ export default function AppNavigator() {
       <Stack.Screen name="AddPerson" component={AddPersonScreen} />
       <Stack.Screen name="Vault" component={VaultScreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 }

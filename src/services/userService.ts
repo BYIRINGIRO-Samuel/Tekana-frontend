@@ -60,5 +60,9 @@ export const userService = {
     async removeTrustedContact(id: string, contactId: string) {
         const response = await api.delete(`/users/${id}/trusted-contacts/${contactId}`);
         return response.data;
+    },
+    async getNotifications(userId: string) {
+        const response = await api.get(`/users/${userId}/notifications`);
+        return response.data;
     }
 };
