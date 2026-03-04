@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../services/authService';
 
 export default function SignupScreen({ navigate, goBack }: { navigate: (screen: string) => void, goBack?: () => void }) {
@@ -8,6 +9,7 @@ export default function SignupScreen({ navigate, goBack }: { navigate: (screen: 
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
@@ -84,16 +86,22 @@ export default function SignupScreen({ navigate, goBack }: { navigate: (screen: 
                 />
               </View>
 
-              <View>
+              <View className="relative">
                 <Text className="text-brand-green text-xs font-bold uppercase mb-2 ml-1">Password</Text>
                 <TextInput 
                   placeholder="••••••••"
                   placeholderTextColor="#444"
-                  className="bg-brand-muted h-16 rounded-2xl px-5 text-white border border-gray-800 focus:border-brand-green"
-                  secureTextEntry
+                  className="bg-brand-muted h-16 rounded-2xl px-5 pr-12 text-white border border-gray-800 focus:border-brand-green"
+                  secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={setPassword}
                 />
+                <TouchableOpacity 
+                  className="absolute right-3 top-10"
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={24} color="#666" />
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity 
