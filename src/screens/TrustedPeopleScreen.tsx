@@ -178,6 +178,18 @@ export default function TrustedPeopleScreen({ navigate, goBack }: { navigate: (s
           These people will be notified immediately when you trigger an <Text className="text-brand-green font-bold">SOS</Text> alert.
         </Text>
       </View>
+      <View className="bg-brand-muted mb-4 p-5 rounded-xl border border-gray-800 flex-row items-center">
+        <View className="w-14 h-14 rounded-lg bg-blue-500/10 border border-blue-500/30 items-center justify-center mr-4">
+          <Text className="text-blue-500 font-black text-xl">🚔</Text>
+        </View>
+        <View className="flex-1">
+          <Text className="text-white font-bold text-lg mb-1">Police</Text>
+          <Text className="text-gray-500 font-medium text-sm">112</Text>
+        </View>
+        <View className="bg-blue-500/20 px-3 py-1 rounded-full border border-blue-500/20 mr-2">
+          <Text className="text-blue-500 text-[10px] font-black uppercase tracking-widest">EMERGENCY</Text>
+        </View>
+      </View>
       <FlatList 
         data={trustedContacts}
         keyExtractor={(item) => item.id}
